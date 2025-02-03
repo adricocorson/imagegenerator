@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Image Generator</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Initial Loader -->
+  <div class="preloader">
+    <div class="loader"></div>
+  </div>
+
+  <div class="container" style="display: none;">
+    <div class="title-container">
+      <h1>AI Image Generator</h1>
+      <div class="credit">This website is made by @Adrico</div>
+    </div>
+    
+    <div class="input-container">
+      <input type="text" id="prompt" placeholder="Describe your image...">
+      <button onclick="generateImage()">Generate</button>
+      <button onclick="rollDice()" class="dice-button">🎲 Random</button>
+    </div>
+    
+    <div id="image-container">
+      <div id="image-wrapper">
+        <img id="generated-image" alt="Generated image">
+      </div>
+    </div>
+
+    <!-- Modified Loading Indicator -->
+    <div id="loading" style="display: none;">
+      <p class="loading-text">Creating your artwork...</p>
+    </div>
+
+    <div id="status-message" class="status-message"></div>
+  </div>
+
+  <script>
+    // Initial Loader Handler
+    window.addEventListener('load', () => {
+      const preloader = document.querySelector('.preloader');
+      const container = document.querySelector('.container');
+      
+      setTimeout(() => {
+        preloader.style.opacity = '0';
+        setTimeout(() => {
+          preloader.style.display = 'none';
+          container.style.display = 'block';
+        }, 500);
+      }, 3000);
+    });
+  
+    // Modified Loading Function
+    function showLoading(show) {
+      document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+  
+    // App Configuration
+    const API_CONFIG = {
+      ENDPOINT: "https://api.hyperbolic.xyz/v1/image/generation",
+      API_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZHJpY29tdWxpYTdAZ21haWwuY29tIiwiaWF0IjoxNzM4NTAxMDg1fQ.6AuM_RQwUIC4PZnu3e_8DiIrMAVIxU1bqUkpcZuLBkg", // We'll move this to Netlify environment variables
+      MODEL: "SDXL1.0-base",
+      DEFAULT_PARAMS: {
+        steps: 30,
+        cfg_scale: 5,
+        width: 1024,
+        height: 1024,
+        enable_refiner: false,
+        backend: "auto"
+      }
+    };
+
+    // Rate limiting configuration
+    const RATE_LIMIT = {
+      maxRequests: 10,
+      timeWindow: 60000, // 1 minute in milliseconds
+      requests: [],
+    };
+
+    function checkRateLimit() {
+      const now = Date.now();
+      // Remove requests older than the time window
+      RATE_LIMIT.requests = RATE_LIMIT.requests.filter(time => now - time < RATE_LIMIT.timeWindow);
+      
+      if (RATE_LIMIT.requests.length >= RATE_LIMIT.maxRequests) {
+        const oldestRequest = RATE_LIMIT.requests[0];
+        const timeToWait = RATE_LIMIT.timeWindow - (now - oldestRequest);
+        throw new Error(`Rate limit exceeded. Please wait ${Math.ceil(timeToWait / 1000)} seconds.`);
+      }
+      
+      RATE_LIMIT.requests.push(now);
+      return true;
+    }
+
+    const PROMPT_BANK = [
+      "Cyberpunk cityscape with neon lights and flying cars",
+      "Majestic dragon soaring over snow-capped mountains",
+      "Astronaut exploring alien crystal caves",
+      "Steampunk airship in a thunderstorm",
+      "Enchanted forest with glowing mushrooms"
+    ];
+  
+    let isGenerating = false;
+  
+    async function generateImage() {
+      if (isGenerating) return;
+      
+      const prompt = document.getElementById('prompt').value.trim();
+      if (!prompt) return showStatus("Please enter a prompt", "error");
+  
+      try {
+        // Check rate limit before proceeding
+        checkRateLimit();
+
+        isGenerating = true;
+        showLoading(true);
+        clearPreviousImage();
+  
+        const response = await fetch(API_CONFIG.ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${API_CONFIG.API_KEY}`
+          },
+          body: JSON.stringify({
+            model_name: API_CONFIG.MODEL,
+            prompt: prompt,
+            ...API_CONFIG.DEFAULT_PARAMS
+          })
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Network response was not ok ' + response.statusText);
+        }
+        const data = await response.json();
+        const imageUrl = extractImageUrl(data);
+        if (!imageUrl) throw new Error("Image data not found");
+  
+        await displayImage(imageUrl);
+        showStatus("Image generated successfully!", "success");
+        
+      } catch (error) {
+        console.error('Error fetching image:', error);
+        showStatus(error.message || 'Failed to generate image. Please try again later.', 'error');
+      } finally {
+        isGenerating = false;
+        showLoading(false);
+      }
+    }
+  
+    function extractImageUrl(responseData) {
+      if (responseData?.images?.[0]?.image) {
+        const base64Data = responseData.images[0].image;
+        return base64Data.startsWith('data:') ? base64Data : `data:image/png;base64,${base64Data}`;
+      }
+  
+      const searchPaths = ['output.image', 'output.url', 'data.image', 'images[0].url'];
+      for (const path of searchPaths) {
+        try {
+          const value = path.split('.').reduce((obj, key) => obj?.[key], responseData);
+          if (value && typeof value === 'string') {
+            return value.startsWith('http') ? value : `data:image/png;base64,${value}`;
+          }
+        } catch (e) {}
+      }
+      return null;
+    }
+  
+    async function displayImage(imageUrl) {
+      const img = document.getElementById('generated-image');
+      img.style.opacity = '0';
+      return new Promise((resolve) => {
+        img.onload = () => {
+          img.style.opacity = '1';
+          resolve();
+        };
+        img.src = imageUrl;
+      });
+    }
+  
+    function rollDice() {
+      const randomPrompt = PROMPT_BANK[Math.floor(Math.random() * PROMPT_BANK.length)];
+      document.getElementById('prompt').value = randomPrompt;
+    }
+  
+    function clearPreviousImage() {
+      const img = document.getElementById('generated-image');
+      img.src = '';
+      img.style.opacity = '0';
+    }
+  
+    function showStatus(message, type = 'info') {
+      const statusEl = document.getElementById('status-message');
+      statusEl.textContent = message;
+      statusEl.className = `status-message ${type}`;
+      statusEl.style.display = 'block';
+      if (type !== 'error') {
+        setTimeout(() => statusEl.style.display = 'none', 5000);
+      }
+    }
+  </script>
+</body>
+</html>
