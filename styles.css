@@ -180,39 +180,34 @@ button:active {
   height: 100%;
   background: #1a1a1a;
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 1000;
   transition: opacity 0.5s ease;
 }
 
-.preloader img {
-  width: 150px;
-  height: 150px;
-  margin-bottom: 20px;
-  animation: pulse 2s infinite;
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(74, 158, 255, 0.1);
+  border-radius: 50%;
+  border-left-color: #4a9eff;
+  animation: spin 1s linear infinite;
 }
 
-.preloader p {
-  color: #4a9eff;
-  font-size: 1.5rem;
-  font-weight: 600;
-  text-align: center;
-  animation: pulse 2s infinite;
-  animation-delay: 0.5s;
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulse {
   0% { opacity: 0.6; transform: scale(0.98); }
   50% { opacity: 1; transform: scale(1); }
   100% { opacity: 0.6; transform: scale(0.98); }
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 @keyframes pulse {
