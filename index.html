@@ -22,7 +22,7 @@
     <div class="input-container">
       <input type="text" id="prompt" placeholder="Describe your image...">
       <button onclick="generateImage()">Generate</button>
-      <button onclick="rollDice()" class="dice-button">🎲 Random</button>
+      <button onclick="rollDice()" class="dice-button"> Random</button>
     </div>
     
     <div id="image-container">
@@ -58,43 +58,6 @@
     function showLoading(show) {
       document.getElementById('loading').style.display = show ? 'block' : 'none';
     }
-  
-    // App Configuration
-    const API_CONFIG = {
-      ENDPOINT: "https://api.hyperbolic.xyz/v1/image/generation",
-      API_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZHJpY29tdWxpYTdAZ21haWwuY29tIiwiaWF0IjoxNzM4NTAxMDg1fQ.6AuM_RQwUIC4PZnu3e_8DiIrMAVIxU1bqUkpcZuLBkg", // We'll move this to Netlify environment variables
-      MODEL: "SDXL1.0-base",
-      DEFAULT_PARAMS: {
-        steps: 30,
-        cfg_scale: 5,
-        width: 1024,
-        height: 1024,
-        enable_refiner: false,
-        backend: "auto"
-      }
-    };
-
-    // Rate limiting configuration
-    const RATE_LIMIT = {
-      maxRequests: 10,
-      timeWindow: 60000, // 1 minute in milliseconds
-      requests: [],
-    };
-
-    function checkRateLimit() {
-      const now = Date.now();
-      // Remove requests older than the time window
-      RATE_LIMIT.requests = RATE_LIMIT.requests.filter(time => now - time < RATE_LIMIT.timeWindow);
-      
-      if (RATE_LIMIT.requests.length >= RATE_LIMIT.maxRequests) {
-        const oldestRequest = RATE_LIMIT.requests[0];
-        const timeToWait = RATE_LIMIT.timeWindow - (now - oldestRequest);
-        throw new Error(`Rate limit exceeded. Please wait ${Math.ceil(timeToWait / 1000)} seconds.`);
-      }
-      
-      RATE_LIMIT.requests.push(now);
-      return true;
-    }
 
     const PROMPT_BANK = [
       "Cyberpunk cityscape with neon lights and flying cars",
@@ -113,30 +76,23 @@
       if (!prompt) return showStatus("Please enter a prompt", "error");
   
       try {
-        // Check rate limit before proceeding
-        checkRateLimit();
-
         isGenerating = true;
         showLoading(true);
         clearPreviousImage();
   
-        const response = await fetch(API_CONFIG.ENDPOINT, {
+        const response = await fetch('http://localhost:3001/api/generate', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${API_CONFIG.API_KEY}`
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            model_name: API_CONFIG.MODEL,
-            prompt: prompt,
-            ...API_CONFIG.DEFAULT_PARAMS
-          })
+          body: JSON.stringify({ prompt })
         });
   
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Network response was not ok ' + response.statusText);
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to generate image');
         }
+
         const data = await response.json();
         const imageUrl = extractImageUrl(data);
         if (!imageUrl) throw new Error("Image data not found");
@@ -145,7 +101,7 @@
         showStatus("Image generated successfully!", "success");
         
       } catch (error) {
-        console.error('Error fetching image:', error);
+        console.error('Error:', error);
         showStatus(error.message || 'Failed to generate image. Please try again later.', 'error');
       } finally {
         isGenerating = false;

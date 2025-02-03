@@ -1,4 +1,4 @@
-// This script will load environment variables from Netlify
+// Environment variables for the frontend
 window.ENV_VARS = {
-    HYPERBOLIC_API_KEY: process.env.HYPERBOLIC_API_KEY || ''
+    API_ENDPOINT: 'http://localhost:3001'
 };

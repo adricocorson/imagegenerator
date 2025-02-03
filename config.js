@@ -1,6 +1,6 @@
 // Configuration for the application
 const config = {
-    API_ENDPOINT: "https://api.hyperbolic.xyz/v1/image/generation",
+    API_ENDPOINT: '/api/generate',
     MODEL: "SDXL1.0-base",
     DEFAULT_PARAMS: {
         steps: 30,
