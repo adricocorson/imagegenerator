@@ -12,72 +12,88 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
+  padding: 1rem;
 }
 
 .container {
-  max-width: 800px;
-  width: 100%;
-  padding: 30px;
-  background: rgba(30, 30, 30, 0.7);
-  border-radius: 20px;
+  width: min(95%, 800px);
+  margin: 0 auto;
+  padding: clamp(1.5rem, 5vw, 2.5rem);
+  background: rgba(30, 30, 30, 0.95);
+  border-radius: clamp(1rem, 3vw, 1.5rem);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: clamp(1.5rem, 4vw, 2rem);
 }
 
 .title-container {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: clamp(1rem, 3vw, 1.5rem);
 }
 
 h1 {
-  font-size: 2.5em;
-  margin-bottom: 10px;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  margin-bottom: 0.5rem;
   background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  line-height: 1.2;
 }
 
 .credit {
   color: #888;
-  font-size: 0.9em;
+  font-size: clamp(0.8rem, 2vw, 0.9rem);
 }
 
 .input-container {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: clamp(0.5rem, 2vw, 1rem);
   width: 100%;
+  flex-wrap: wrap;
 }
 
 input {
   flex: 1;
   min-width: 200px;
-  padding: 12px 20px;
+  padding: clamp(0.8rem, 2vw, 1rem);
   border: none;
-  border-radius: 10px;
+  border-radius: 0.75rem;
   background: rgba(255, 255, 255, 0.1);
   color: white;
-  font-size: 1em;
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  transition: all 0.3s ease;
+}
+
+input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.3);
 }
 
 input::placeholder {
   color: rgba(255, 255, 255, 0.5);
 }
 
+.button-container {
+  display: flex;
+  gap: clamp(0.5rem, 2vw, 1rem);
+  flex-wrap: wrap;
+}
+
 button {
-  padding: 12px 25px;
+  padding: clamp(0.8rem, 2vw, 1rem) clamp(1.2rem, 3vw, 1.5rem);
   border: none;
-  border-radius: 10px;
+  border-radius: 0.75rem;
   cursor: pointer;
-  font-size: 1em;
+  font-size: clamp(0.9rem, 2vw, 1rem);
   font-weight: 600;
   transition: all 0.3s ease;
+  flex: 1;
+  min-width: max-content;
+  white-space: nowrap;
 }
 
 button:first-of-type {
@@ -93,6 +109,11 @@ button:first-of-type {
 button:hover {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  opacity: 0.9;
+}
+
+button:active {
+  transform: translateY(0);
 }
 
 #image-container {
@@ -100,15 +121,17 @@ button:hover {
   display: flex;
   justify-content: center;
   align-items: center;
+  margin: clamp(1rem, 3vw, 2rem) 0;
 }
 
 #image-wrapper {
   width: 100%;
-  max-width: 512px;
+  max-width: min(512px, 90vw);
   aspect-ratio: 1;
-  border-radius: 10px;
+  border-radius: clamp(0.75rem, 2vw, 1rem);
   overflow: hidden;
   background: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 #generated-image {
@@ -121,21 +144,22 @@ button:hover {
 
 #loading {
   text-align: center;
-  margin: 20px 0;
+  margin: clamp(1rem, 3vw, 1.5rem) 0;
 }
 
 .loading-text {
   color: #4a9eff;
-  font-size: 1.2em;
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
   animation: pulse 1.5s infinite;
 }
 
 .status-message {
   text-align: center;
-  padding: 10px;
-  border-radius: 5px;
-  margin-top: 10px;
+  padding: clamp(0.8rem, 2vw, 1rem);
+  border-radius: 0.75rem;
+  margin-top: clamp(0.8rem, 2vw, 1rem);
   display: none;
+  font-size: clamp(0.9rem, 2vw, 1rem);
 }
 
 .status-message.error {
@@ -163,8 +187,8 @@ button:hover {
 }
 
 .loader {
-  width: 50px;
-  height: 50px;
+  width: clamp(40px, 8vw, 50px);
+  height: clamp(40px, 8vw, 50px);
   border: 5px solid #333;
   border-top-color: #4a9eff;
   border-radius: 50%;
@@ -178,34 +202,24 @@ button:hover {
 }
 
 @keyframes pulse {
-  0% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.6;
-  }
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
 }
 
 /* Mobile Responsiveness */
 @media (max-width: 600px) {
   body {
-    padding: 10px;
+    padding: 0.75rem;
   }
 
   .container {
-    padding: 20px;
-  }
-
-  h1 {
-    font-size: 2em;
+    padding: clamp(1.2rem, 4vw, 1.5rem);
+    width: 100%;
   }
 
   .input-container {
     flex-direction: column;
-    gap: 15px;
   }
 
   input {
@@ -213,8 +227,15 @@ button:hover {
     min-width: unset;
   }
 
+  .button-container {
+    flex-direction: column;
+    width: 100%;
+  }
+
   button {
     width: 100%;
+    justify-content: center;
+    padding: 0.9rem;
   }
 
   #image-wrapper {
