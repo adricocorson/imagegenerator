@@ -80,7 +80,7 @@
         showLoading(true);
         clearPreviousImage();
   
-        const response = await fetch('http://localhost:3001/api/generate', {
+        const response = await fetch('/.netlify/functions/generate', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

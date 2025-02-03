@@ -5,6 +5,10 @@ exports.handler = async function(event, context) {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
       body: JSON.stringify({ error: 'Method not allowed' })
     };
   }
@@ -15,6 +19,10 @@ exports.handler = async function(event, context) {
     if (!prompt) {
       return {
         statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        },
         body: JSON.stringify({ error: 'Prompt is required' })
       };
     }
@@ -40,21 +48,36 @@ exports.handler = async function(event, context) {
     const data = await response.json();
 
     if (!response.ok) {
+      console.error('API Error:', data);
       return {
         statusCode: response.status,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        },
         body: JSON.stringify({ error: data.message || 'Failed to generate image' })
       };
     }
 
     return {
       statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
       body: JSON.stringify(data)
     };
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Server Error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Internal server error' })
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+      body: JSON.stringify({ 
+        error: error.message || 'Internal server error'
+      })
     };
   }
 };
